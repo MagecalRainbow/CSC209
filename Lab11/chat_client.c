@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+
+#ifndef PORT
+  #define PORT 30000
+#endif
+#define BUF_SIZE 128
+
+int main(void) {
+//	// Get the user to provide a name.
+    char username[2 * BUF_SIZE + 1];            // 2x to allow for usernames
+    printf("Please enter a username: ");
+    fflush(stdout);
+    int bytes_read = read(STDIN_FILENO, username, BUF_SIZE);
+    username[bytes_read] = '\0';
+
+    // Create the socket FD.
+    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock_fd < 0) {
+        perror("client: socket");
+        exit(1);
+    }
+
+    // Set the IP and port of the server to connect to.
+    struct sockaddr_in server;
+    server.sin_family = AF_INET;
+    server.sin_port = htons(PORT);
+    if (inet_pton(AF_INET, "127.0.0.1", &server.sin_addr) < 1) {
+        perror("client: inet_pton");
+        close(sock_fd);
+        exit(1);
+    }
+
+    // Connect to the server.
+    if (connect(sock_fd, (struct sockaddr *)&server, sizeof(server)) == -1) {
+        perror("client: connect");
+        close(sock_fd);
+        exit(1);
+    }
+
+    //Write the usernmae to the server.
+    int bytes_written = write(sock_fd, username, bytes_read);
+    if (bytes_written != bytes_read) {
+        perror("client: write");
+        close(sock_fd);
+        exit(1);
+    }
+
+
+    int numfd = sock_fd;
+    fd_set read_fds;
+    FD_ZERO(&read_fds);
+    FD_SET(sock_fd, &read_fds);
+    FD_SET(STDIN_FILENO, &read_fds);
+
+    // Read input from the user, send it to the server, and then accept the
+    // echo that returns. Exit when stdin is closed.
+
+    char buf[BUF_SIZE + 1];
+    while (1) {
+        fd_set hold_fds = read_fds;
+        int select_n = select(numfd + 1, &hold_fds, NULL, NULL, NULL);
+        if (select_n == - 1) {
+            perror("client: select");
+            exit(1);
+        }
+ 
+        int num_read;
+        if (FD_ISSET(STDIN_FILENO, &hold_fds)) {
+            num_read = read(STDIN_FILENO, buf, BUF_SIZE);
+            if (num_read == 0) {
+                break;
+            }
+            buf[num_read] = '\0';       
+
+            // Should really send '\r\n'
+            int num_written = write(sock_fd, buf, num_read);
+            if (num_written != num_read) {
+                perror("client: write");
+                close(sock_fd);
+                exit(1);
+            }
+        }
+
+        if (FD_ISSET(sock_fd, &hold_fds)) {
+            num_read = read(sock_fd, buf, BUF_SIZE);
+            buf[num_read] = '\0';
+            printf("Received from server: %s", buf);
+        }
+        
+    }
+
+    close(sock_fd);
+    return 0;
+}

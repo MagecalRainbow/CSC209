@@ -1,0 +1,10 @@
+Script started on 2019-11-22 17:18:21-0500
+]0;parkhoky@wolf:/h/u7/c7/04/parkhoky/CSC209/parkhoky/lab10wolf:~/CSC209/parkhoky/lab10$ ./randclient 127.0.0.1
+connect: Connection refused
+]0;parkhoky@wolf:/h/u7/c7/04/parkhoky/CSC209/parkhoky/lab10wolf:~/CSC209/parkhoky/lab10$ ./randclient 127.0.0.1
+connect: Connection refused
+]0;parkhoky@wolf:/h/u7/c7/04/parkhoky/CSC209/parkhoky/lab10wolf:~/CSC209/parkhoky/lab10$ ./randclient 127.0.0.1
+]0;parkhoky@wolf:/h/u7/c7/04/parkhoky/CSC209/parkhoky/lab10wolf:~/CSC209/parkhoky/lab10$ exit
+exit
+
+Script done on 2019-11-22 17:21:02-0500
